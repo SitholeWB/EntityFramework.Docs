@@ -16,30 +16,27 @@ On relational databases, a column can be configured with a default value; if a r
 
 You can configure a default value on a property:
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/DefaultValue.cs?name=DefaultValue&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/DefaultValue.cs?name=DefaultValue&highlight=5)]
 
 You can also specify a SQL fragment that is used to calculate the default value:
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/DefaultValueSql.cs?name=DefaultValueSql&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/DefaultValueSql.cs?name=DefaultValueSql&highlight=5)]
 
 ## Computed columns
 
 On most relational databases, a column can be configured to have its value computed in the database, typically with an expression referring to other columns:
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ComputedColumn.cs?name=DefaultComputedColumn&highlight=3)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/ComputedColumn.cs?name=DefaultComputedColumn&highlight=3)]
 
 The above creates a *virtual* computed column, whose value is computed every time it is fetched from the database. You may also specify that a computed column be *stored* (sometimes called *persisted*), meaning that it is computed on every update of the row, and is stored on disk alongside regular columns:
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ComputedColumn.cs?name=StoredComputedColumn&highlight=3)]
-
-> [!NOTE]
-> Support for creating stored computed columns was added in EF Core 5.0.
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/ComputedColumn.cs?name=StoredComputedColumn&highlight=3)]
 
 ## Primary keys
 
 By convention, non-composite primary keys of type short, int, long, or Guid are set up to have values generated for inserted entities if a value isn't provided by the application. Your database provider typically takes care of the necessary configuration; for example, a numeric primary key in SQL Server is automatically set up to be an IDENTITY column.
 
-For more information, [see the documentation about keys](xref:core/modeling/keys).
+For more information, [see the documentation about keys](xref:core/modeling/keys) and [guidance for specific inheritance mapping strategies](xref:core/modeling/inheritance#key-generation).
 
 ## Explicitly configuring value generation
 
@@ -47,11 +44,11 @@ We saw above that EF Core automatically sets up value generation for primary key
 
 ### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/ValueGeneratedOnAdd.cs?name=ValueGeneratedOnAdd&highlight=6)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/DataAnnotations/ValueGeneratedOnAdd.cs?name=ValueGeneratedOnAdd&highlight=6)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ValueGeneratedOnAdd.cs?name=ValueGeneratedOnAdd&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/ValueGeneratedOnAdd.cs?name=ValueGeneratedOnAdd&highlight=5)]
 
 ***
 
@@ -59,33 +56,31 @@ Similarly, a property can be configured to have its value generated on add or up
 
 ### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/ValueGeneratedOnAddOrUpdate.cs?name=ValueGeneratedOnAddOrUpdate&highlight=6)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/DataAnnotations/ValueGeneratedOnAddOrUpdate.cs?name=ValueGeneratedOnAddOrUpdate&highlight=6)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ValueGeneratedOnAddOrUpdate.cs?name=ValueGeneratedOnAddOrUpdate&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/ValueGeneratedOnAddOrUpdate.cs?name=ValueGeneratedOnAddOrUpdate&highlight=5)]
 
 ***
 
-> [!WARNING]
-> Unlike with default values or computed columns, we are not specifying *how* the values are to be generated; that depends on the database provider being used. Database providers may automatically set up value generation for some property types, but others may require you to manually set up how the value is generated.
->
-> For example, on SQL Server, when a GUID property is configured as value generated on add, the provider automatically performs value generation client-side, using an algorithm to generate optimal sequential GUID values. However, specifying <xref:Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder.ValueGeneratedOnAdd%2A> on a DateTime property will have no effect ([see the section below for DateTime value generation](#datetime-value-generation)).
->
-> Similarly, byte[] properties that are configured as generated on add or update and marked as concurrency tokens are set up with the rowversion data type, so that values are automatically generated in the database. However, specifying <xref:Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder.ValueGeneratedOnAdd%2A> has no effect.
->
-> [!NOTE]
-> Depending on the database provider being used, values may be generated client side by EF or in the database. If the value is generated by the database, then EF may assign a temporary value when you add the entity to the context; this temporary value will then be replaced by the database generated value during `SaveChanges()`. For more information, [see the docs on temporary values](xref:core/change-tracking/explicit-tracking#temporary-values).
+Unlike with default values or computed columns, we are not specifying *how* the values are to be generated; that depends on the database provider being used. Database providers may automatically set up value generation for some property types, but others may require you to manually set up how the value is generated.
+
+For example, on SQL Server, when a GUID property is configured as a primary key, the provider automatically performs value generation client-side, using an algorithm to generate optimal sequential GUID values. However, specifying <xref:Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder.ValueGeneratedOnAdd*> on a DateTime property will have no effect ([see the section below for DateTime value generation](#datetime-value-generation)).
+
+Similarly, byte[] properties that are configured as generated on add or update and marked as concurrency tokens are set up with the rowversion data type, so that values are automatically generated in the database. However, specifying <xref:Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder.ValueGeneratedOnAdd*> has no effect.
+
+Consult your provider's documentation for the specific value generation techniques it supports. The SQL Server value generation documentation can be found [here](xref:core/providers/sql-server/value-generation).
 
 ## Date/time value generation
 
-A common request is to have a database column which contains the date/time for when the column was first inserted (value generated on add), or for when it was last updated (value generated on add or update). As there are various strategies to do this, EF Core providers usually don't set up value generation automatically for date/time columns - you have to configure this yourself.
+A common request is to have a database column which contains the date/time for when the row was first inserted (value generated on add), or for when it was last updated (value generated on add or update). As there are various strategies to do this, EF Core providers usually don't set up value generation automatically for date/time columns - you have to configure this yourself.
 
 ### Creation timestamp
 
 Configuring a date/time column to have the creation timestamp of the row is usually a matter of configuring a default value with the appropriate SQL function. For example, on SQL Server you may use the following:
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/DefaultValueSql.cs?name=DefaultValueSql&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/DefaultValueSql.cs?name=DefaultValueSql&highlight=5)]
 
 Be sure to select the appropriate function, as several may exist (e.g. `GETDATE()` vs. `GETUTCDATE()`).
 
@@ -102,14 +97,11 @@ BEGIN
 
     IF ((SELECT TRIGGER_NESTLEVEL()) > 1) RETURN;
 
-    DECLARE @Id INT
-
-    SELECT @Id = INSERTED.BlogId
-    FROM INSERTED
-
-    UPDATE dbo.Blogs
+    UPDATE B
     SET LastUpdated = GETDATE()
-    WHERE BlogId = @Id
+    FROM dbo.Blogs AS B
+    INNER JOIN INSERTED AS I
+        ON B.BlogId = I.BlogId
 END
 ```
 
@@ -126,7 +118,7 @@ To override value generation with an explicit value, simply set the property to 
 
 To provide an explicit value for properties that have been configured as value generated on add or update, you must also configure the property as follows:
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ValueGeneratedOnAddOrUpdateWithPropertySaveBehavior.cs?name=ValueGeneratedOnAddOrUpdateWithPropertySaveBehavior&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/ValueGeneratedOnAddOrUpdateWithPropertySaveBehavior.cs?name=ValueGeneratedOnAddOrUpdateWithPropertySaveBehavior&highlight=5)]
 
 ## No value generation
 
@@ -136,10 +128,10 @@ However, in some cases you may want to disable value generation that has been se
 
 ### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/ValueGeneratedNever.cs?name=ValueGeneratedNever&highlight=3)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/DataAnnotations/ValueGeneratedNever.cs?name=ValueGeneratedNever&highlight=3)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ValueGeneratedNever.cs?name=ValueGeneratedNever&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/GeneratedProperties/FluentAPI/ValueGeneratedNever.cs?name=ValueGeneratedNever&highlight=5)]
 
 ***

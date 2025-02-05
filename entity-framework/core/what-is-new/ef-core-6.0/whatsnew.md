@@ -1,14 +1,14 @@
 ---
 title: What's New in EF Core 6.0
 description: Overview of new features in EF Core 6.0
-author: ajcvickers
-ms.date: 10/19/2021
+author: SamMonoRT
+ms.date: 12/06/2021
 uid: core/what-is-new/ef-core-6.0/whatsnew
 ---
 
 # What's New in EF Core 6.0
 
-EF Core 6.0 has reached release candidate quality. This page contains an overview of interesting changes introduced in this release.
+EF Core 6.0 has [shipped to NuGet](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore/). This page contains an overview of interesting changes introduced in this release.
 
 > [!TIP]
 > You can run and debug into the samples shown below by [downloading the sample code from GitHub](https://github.com/dotnet/EntityFramework.Docs/tree/main/samples/core/Miscellaneous/NewInEFCore6).
@@ -182,16 +182,16 @@ Notice that the `ValidTo` column (by default called `PeriodEnd`) contains the `d
 
 ### Querying historical data
 
-EF Core supports querying historical data from the table through several new query operators:
+EF Core supports queries that include historical data through several new query operators:
 
-* `TemporalAsOf`: Returns rows that were active (current) at the given UTC time. This is a single row from the history table for a given primary key.
-* `TemporalAll`: Returns all rows in the historical data. This is typically many rows from the history table for a given primary key.
-* `TemporalFromTo`: Returns all rows that were active between two given UTC times. This may be many rows from the history table for a given primary key.
+* `TemporalAsOf`: Returns rows that were active (current) at the given UTC time. This is a single row from the current table or history table for a given primary key.
+* `TemporalAll`: Returns all rows in the historical data. This is typically many rows from the history table and/or the current table for a given primary key.
+* `TemporalFromTo`: Returns all rows that were active between two given UTC times. This may be many rows from the history table and/or the current table for a given primary key.
 * `TemporalBetween`: The same as `TemporalFromTo`, except that rows are included that became active on the upper boundary.
-* `TemporalContainedIn`: : Returns all rows that started being active and ended being active between two given UTC times. This may be many rows from the history table for a given primary key.
+* `TemporalContainedIn`: Returns all rows that started being active and ended being active between two given UTC times. This may be many rows from the history table and/or the current table for a given primary key.
 
-> [!INFO]
-> See the [SQL Server temporal tables documentation](/sql/relational-databases/tables/temporal-tables#how-do-i-query-temporal-data)] for more information on exactly which rows are included for each of these operators.
+> [!NOTE]
+> See the [SQL Server temporal tables documentation](/sql/relational-databases/tables/temporal-tables#how-do-i-query-temporal-data) for more information on exactly which rows are included for each of these operators.
 
 For example, after making some updates and deletes to our data, we can run a query using `TemporalAll` to see the historical data:
 
@@ -501,7 +501,7 @@ Pre-convention model configuration is very useful when working with value object
     public enum Currency
     {
         UsDollars,
-        PoundsStirling
+        PoundsSterling
     }
 -->
 [!code-csharp[MoneyType](../../../../samples/core/Miscellaneous/NewInEFCore6/PreConventionModelConfigurationSample.cs?name=MoneyType)]
@@ -686,7 +686,7 @@ If supporting any of these features is critical to your success, then please vot
 
 The model in the GitHub repo referenced above contains 449 entity types, 6390 properties, and 720 relationships. This is a moderately large model. Using [BenchmarkDotNet](https://www.nuget.org/packages/BenchmarkDotNet) to measure, the average time to first query is 1.02 seconds on a reasonably powerful laptop. Using compiled models brings this down to 117 milliseconds on the same hardware. An 8x to 10x improvement like this stays relatively constant as the model size increases.
 
-![Add Connection LocalDB](compiled_models.png)
+![Compiled model performance improvement](compiled_models.png)
 
 > [!NOTE]
 > See [Announcing Entity Framework Core 6.0 Preview 5: Compiled Models](https://devblogs.microsoft.com/dotnet/announcing-entity-framework-core-6-0-preview-5-compiled-models/) on the .NET Blog for a more in-depth discussion of EF Core startup performance and compiled models.
@@ -707,7 +707,7 @@ After these improvements, the gap between the popular "micro-ORM" [Dapper](https
 > [!NOTE]
 > See [Announcing Entity Framework Core 6.0 Preview 4: Performance Edition](https://devblogs.microsoft.com/dotnet/announcing-entity-framework-core-6-0-preview-4-performance-edition/) on the .NET Blog for a detailed discussion of query performance improvements in EF Core 6.0.
 
-## Cosmos provider enhancements
+## Azure Cosmos DB provider enhancements
 
 EF Core 6.0 contains many improvements to the Azure Cosmos DB database provider.
 
@@ -718,7 +718,7 @@ EF Core 6.0 contains many improvements to the Azure Cosmos DB database provider.
 
 GitHub Issue: [#24803](https://github.com/dotnet/efcore/issues/24803).
 
-When building a model for the Cosmos provider, EF Core 6.0 will mark child entity types as owned by their parent entity by default. This removes the need for much of the `OwnsMany` and `OwnsOne` calls in the Cosmos model. This makes it easier to embed child types into the document for the parent type, which is usually the appropriate way to model parents and children in a document database.
+When building a model for the Azure Cosmos DB provider, EF Core 6.0 will mark child entity types as owned by their parent entity by default. This removes the need for much of the `OwnsMany` and `OwnsOne` calls in the Azure Cosmos DB model. This makes it easier to embed child types into the document for the parent type, which is usually the appropriate way to model parents and children in a document database.
 
 For example, consider these entity types:
 
@@ -756,7 +756,7 @@ public class Child
 -->
 [!code-csharp[Model](../../../../samples/core/Miscellaneous/NewInEFCore6.Cosmos/CosmosImplicitOwnershipSample.cs?name=Model)]
 
-In EF Core 5.0, these types would have been modeled for Cosmos with the following configuration:
+In EF Core 5.0, these types would have been modeled for Azure Cosmos DB with the following configuration:
 
 <!--
 modelBuilder.Entity<Family>()
@@ -779,7 +779,7 @@ modelBuilder.Entity<Family>().HasPartitionKey(e => e.LastName);
 -->
 [!code-csharp[OnModelCreating](../../../../samples/core/Miscellaneous/NewInEFCore6.Cosmos/CosmosImplicitOwnershipSample.cs?name=OnModelCreating)]
 
-The resulting Cosmos documents have the family's parents, children, pets, and address embedded in the family document. For example:
+The resulting Azure Cosmos DB documents have the family's parents, children, pets, and address embedded in the family document. For example:
 
 ```json
 {
@@ -841,7 +841,7 @@ The resulting Cosmos documents have the family's parents, children, pets, and ad
 
 GitHub Issue: [#14762](https://github.com/dotnet/efcore/issues/14762).
 
-EF Core 6.0 natively maps collections of primitive types when using the Cosmos database provider. For example, consider this entity type:
+EF Core 6.0 natively maps collections of primitive types when using the Azure Cosmos DB database provider. For example, consider this entity type:
 
 <!--
 public class Book
@@ -928,23 +928,23 @@ Limitations:
 
 GitHub Issue: [#16143](https://github.com/dotnet/efcore/issues/16143).
 
-The Cosmos provider now translates more Base Class Library (BCL) methods to Cosmos built-in-functions. The following tables show translations that are new in EF Core 6.0.
+The Azure Cosmos DB provider now translates more Base Class Library (BCL) methods to Azure Cosmos DB built-in-functions. The following tables show translations that are new in EF Core 6.0.
 
 **String translations**
 
-| BCL method          | Built-in function | Notes
-|:--------------------|-------------------|------
-| `String.Length`     | `LENGTH`          |
-| `String.ToLower`    | `LOWER`           |
-| `String.TrimStart`  | `LTRIM`           |
-| `String.TrimEnd`    | `RTRIM`           |
-| `String.Trim`       | `TRIM`            |
-| `String.ToUpper`    | `UPPER`           |
-| `String.Substring`  | `SUBSTRING`       |
-| `+` operator        | `CONCAT`          |
-| `String.IndexOf`    | `INDEX_OF`        |
-| `String.Replace`    | `REPLACE`         |
-| `String.Equals`     | `STRINGEQUAL`     | Only case-insensitive calls
+| BCL method         | Built-in function | Notes                       |
+|:-------------------|-------------------|-----------------------------|
+| `String.Length`    | `LENGTH`          |                             |
+| `String.ToLower`   | `LOWER`           |                             |
+| `String.TrimStart` | `LTRIM`           |                             |
+| `String.TrimEnd`   | `RTRIM`           |                             |
+| `String.Trim`      | `TRIM`            |                             |
+| `String.ToUpper`   | `UPPER`           |                             |
+| `String.Substring` | `SUBSTRING`       |                             |
+| `+` operator       | `CONCAT`          |                             |
+| `String.IndexOf`   | `INDEX_OF`        |                             |
+| `String.Replace`   | `REPLACE`         |                             |
+| `String.Equals`    | `STRINGEQUALS`    | Only case-insensitive calls |
 
 Translations for `LOWER`, `LTRIM`, `RTRIM`, `TRIM`, `UPPER`, and `SUBSTRING` were contributed by [@Marusyk](https://github.com/Marusyk). Many thanks!
 
@@ -970,27 +970,27 @@ WHERE ((c["Discriminator"] = "Triangle") AND (((LENGTH(c["Name"]) > 4) AND (LOWE
 
 **Math translations**
 
-| BCL method                          | Built-in function
-|:------------------------------------|-------------------
-| `Math.Abs` or `MathF.Abs`           | `ABS`
-| `Math.Acos` or `MathF.Acos`         | `ACOS`
-| `Math.Asin` or `MathF.Asin`         | `ASIN`
-| `Math.Atan` or `MathF.Atan`         | `ATAN`
-| `Math.Atan2` or `MathF.Atan2`       | `ATN2`
-| `Math.Ceiling` or `MathF.Ceiling`   | `CEILING`
-| `Math.Cos` or `MathF.Cos`           | `COS`
-| `Math.Exp` or `MathF.Exp`           | `EXP`
-| `Math.Floor` or `MathF.Floor`       | `FLOOR`
-| `Math.Log` or `MathF.Log`           | `LOG`
-| `Math.Log10` or `MathF.Log10`       | `LOG10`
-| `Math.Pow` or `MathF.Pow`           | `POWER`
-| `Math.Round` or `MathF.Round`       | `ROUND`
-| `Math.Sign` or `MathF.Sign`         | `SIGN`
-| `Math.Sin` or `MathF.Sin`           | `SIN`
-| `Math.Sqrt` or `MathF.Sqrt`         | `SQRT`
-| `Math.Tan` or `MathF.Tan`           | `TAN`
-| `Math.Truncate` or `MathF.Truncate` | `TRUNC`
-| `DbFunctions.Random`                | `RAND`
+| BCL method                          | Built-in function |
+|:------------------------------------|-------------------|
+| `Math.Abs` or `MathF.Abs`           | `ABS`             |
+| `Math.Acos` or `MathF.Acos`         | `ACOS`            |
+| `Math.Asin` or `MathF.Asin`         | `ASIN`            |
+| `Math.Atan` or `MathF.Atan`         | `ATAN`            |
+| `Math.Atan2` or `MathF.Atan2`       | `ATN2`            |
+| `Math.Ceiling` or `MathF.Ceiling`   | `CEILING`         |
+| `Math.Cos` or `MathF.Cos`           | `COS`             |
+| `Math.Exp` or `MathF.Exp`           | `EXP`             |
+| `Math.Floor` or `MathF.Floor`       | `FLOOR`           |
+| `Math.Log` or `MathF.Log`           | `LOG`             |
+| `Math.Log10` or `MathF.Log10`       | `LOG10`           |
+| `Math.Pow` or `MathF.Pow`           | `POWER`           |
+| `Math.Round` or `MathF.Round`       | `ROUND`           |
+| `Math.Sign` or `MathF.Sign`         | `SIGN`            |
+| `Math.Sin` or `MathF.Sin`           | `SIN`             |
+| `Math.Sqrt` or `MathF.Sqrt`         | `SQRT`            |
+| `Math.Tan` or `MathF.Tan`           | `TAN`             |
+| `Math.Truncate` or `MathF.Truncate` | `TRUNC`           |
+| `DbFunctions.Random`                | `RAND`            |
 
 These translations were contributed by [@Marusyk](https://github.com/Marusyk). Many thanks!
 
@@ -1018,9 +1018,9 @@ WHERE ((c["Discriminator"] = "Triangle") AND (((ROUND(c["Angle1"]) = 90.0) OR (R
 
 **DateTime translations**
 
-| BCL method                  | Built-in function
-|:----------------------------|-------------------
-| `DateTime.UtcNow`           | `GetCurrentDateTime`
+| BCL method        | Built-in function    |
+|:------------------|----------------------|
+| `DateTime.UtcNow` | `GetCurrentDateTime` |
 
 These translations were contributed by [@Marusyk](https://github.com/Marusyk). Many thanks!
 
@@ -1046,7 +1046,7 @@ WHERE ((c["Discriminator"] = "Triangle") AND (c["InsertedOn"] <= GetCurrentDateT
 
 GitHub Issue: [#17311](https://github.com/dotnet/efcore/issues/17311).
 
-Sometimes it is necessary to execute a raw SQL query instead of using LINQ. This is now supported with the Cosmos provider through use of the `FromSql` method. This works the same way it always has done with relational providers. For example:
+Sometimes it is necessary to execute a raw SQL query instead of using LINQ. This is now supported with the Azure Cosmos DB provider through use of the `FromSql` method. This works the same way it always has done with relational providers. For example:
 
 <!--
 var maxAngle = 60;
@@ -1063,9 +1063,8 @@ Which is executed as:
 ```sql
 SELECT c
 FROM (
-         SELECT * FROM root c WHERE c["Angle1"] <= @p0 OR c["Angle2"] <= @p0
-     ) c
-WHERE (c["Discriminator"] = "Triangle")
+    SELECT * FROM root c WHERE c["Angle1"] <= @p0 OR c["Angle2"] <= @p0
+) c
 ```
 
 ### Distinct queries
@@ -1095,12 +1094,12 @@ ORDER BY c["Angle1"]
 
 GitHub Issue: [#17298](https://github.com/dotnet/efcore/issues/17298).
 
-The Cosmos provider now logs more diagnostic information, including events for inserting, querying, updating, and deleting data from the database. The request units (RU) are included in these events whenever appropriate.
+The Azure Cosmos DB provider now logs more diagnostic information, including events for inserting, querying, updating, and deleting data from the database. The request units (RU) are included in these events whenever appropriate.
 
 > [!NOTE]
 > The logs show here use `EnableSensitiveDataLogging()` so that ID values are shown.
 
-Inserting an item into the Cosmos database generates the `CosmosEventId.ExecutedCreateItem` event. For example, this code:
+Inserting an item into the Azure Cosmos DB database generates the `CosmosEventId.ExecutedCreateItem` event. For example, this code:
 
 <!--
 var triangle = new Triangle
@@ -1123,7 +1122,7 @@ info: 8/30/2021 14:41:13.356 CosmosEventId.ExecutedCreateItem[30104] (Microsoft.
       Executed CreateItem (5 ms, 7.43 RU) ActivityId='417db46f-fcdd-49d9-a7f0-77210cd06f84', Container='Shapes', Id='Impossible', Partition='TrianglesPartition'
 ```
 
-Retrieving items from the Cosmos database using a query generates the `CosmosEventId.ExecutingSqlQuery` event, and then one or more `CosmosEventId.ExecutedReadNext` events for the items read. For example, this code:
+Retrieving items from the Azure Cosmos DB database using a query generates the `CosmosEventId.ExecutingSqlQuery` event, and then one or more `CosmosEventId.ExecutedReadNext` events for the items read. For example, this code:
 
 <!--
 var equilateral = context.Triangles.Single(e => e.Name == "Equilateral");
@@ -1147,7 +1146,7 @@ info: 8/30/2021 14:41:13.651 CosmosEventId.ExecutedReadNext[30102] (Microsoft.En
       OFFSET 0 LIMIT 2
 ```
 
-Retrieving a single item from the Cosmos database using `Find` with a partition key generates the `CosmosEventId.ExecutingReadItem` and `CosmosEventId.ExecutedReadItem` events. For example, this code:
+Retrieving a single item from the Azure Cosmos DB database using `Find` with a partition key generates the `CosmosEventId.ExecutingReadItem` and `CosmosEventId.ExecutedReadItem` events. For example, this code:
 
 <!--
 var isosceles = context.Triangles.Find("Isosceles", "TrianglesPartition");
@@ -1163,7 +1162,7 @@ info: 8/30/2021 14:53:39.330 CosmosEventId.ExecutedReadItem[30103] (Microsoft.En
       Executed ReadItem (1 ms, 1 RU) ActivityId='3c278643-4e7f-4bb2-9953-6055b5f1288f', Container='Shapes', Id='Isosceles', Partition='TrianglesPartition'
 ```
 
-Saving an updated item to the Cosmos database generates the `CosmosEventId.ExecutedReplaceItem` event. For example, this code:
+Saving an updated item to the Azure Cosmos DB database generates the `CosmosEventId.ExecutedReplaceItem` event. For example, this code:
 
 <!--
 triangle.Angle2 = 89;
@@ -1178,7 +1177,7 @@ info: 8/30/2021 14:53:39.343 CosmosEventId.ExecutedReplaceItem[30105] (Microsoft
       Executed ReplaceItem (6 ms, 10.67 RU) ActivityId='1525b958-fea1-49e8-89f9-d429d0351fdb', Container='Shapes', Id='Impossible', Partition='TrianglesPartition'
 ```
 
-Deleting an item from the Cosmos database generates the `CosmosEventId.ExecutedDeleteItem` event. For example, this code:
+Deleting an item from the Azure Cosmos DB database generates the `CosmosEventId.ExecutedDeleteItem` event. For example, this code:
 
 <!--
 context.Remove(triangle);
@@ -1197,7 +1196,7 @@ info: 8/30/2021 14:53:39.359 CosmosEventId.ExecutedDeleteItem[30106] (Microsoft.
 
 GitHub Issue: [#17301](https://github.com/dotnet/efcore/issues/17301).
 
-The Cosmos model can now be configured with manual or auto-scale throughput. These values provision throughput on the database. For example:
+The Azure Cosmos DB model can now be configured with manual or auto-scale throughput. These values provision throughput on the database. For example:
 
 <!--
 modelBuilder.HasManualThroughput(2000);
@@ -1221,7 +1220,7 @@ modelBuilder.Entity<Family>(
 
 GitHub Issue: [#17307](https://github.com/dotnet/efcore/issues/17307).
 
-Entity types in the Cosmos model can now be configured with the default time-to-live and time-to-live for the analytical store. For example:
+Entity types in the Azure Cosmos DB model can now be configured with the default time-to-live and time-to-live for the analytical store. For example:
 
 <!--
 modelBuilder.Entity<Family>(
@@ -1237,7 +1236,7 @@ modelBuilder.Entity<Family>(
 
 GitHub Issue: [#21274](https://github.com/dotnet/efcore/issues/21274). This feature was contributed by [@dnperfors](https://github.com/dnperfors). Many thanks!
 
-The `HttpClientFactory` used by the Cosmos provider can now be set explicitly. This can be especially useful during testing, for example to bypass certificate validation when using the Cosmos emulator on Linux:
+The `HttpClientFactory` used by the Azure Cosmos DB provider can now be set explicitly. This can be especially useful during testing, for example to bypass certificate validation when using the Azure Cosmos DB emulator on Linux:
 
 <!--
 optionsBuilder
@@ -1257,10 +1256,10 @@ optionsBuilder
                     }));
         });
 -->
-[!code-csharp[HttpClientFactory](../../../../samples/core/Miscellaneous/NewInEFCore6.Cosmos/CosmosModelConfigurationSample.cs?name=HttpClientFactory)]
+[!code-csharp[HttpClientFactory](../../../../samples/core/Miscellaneous/NewInEFCore6.Cosmos/CosmosPrimitiveTypesSample.cs?name=HttpClientFactory)]
 
 > [!NOTE]
-> See [Taking the EF Core Azure Cosmos DB Provider for a Test Drive](https://devblogs.microsoft.com/dotnet/taking-the-ef-core-azure-cosmos-db-provider-for-a-test-drive/) on the .NET Blog for a detailed example of applying the Cosmos provider improvements to an existing application.
+> See [Taking the EF Core Azure Cosmos DB Provider for a Test Drive](https://devblogs.microsoft.com/dotnet/taking-the-ef-core-azure-cosmos-db-provider-for-a-test-drive/) on the .NET Blog for a detailed example of applying the Azure Cosmos DB provider improvements to an existing application.
 
 ## Improvements to scaffolding from an existing database
 
@@ -1285,16 +1284,14 @@ CREATE TABLE [Posts] (
     [Contents] nvarchar(max) NOT NULL,
     [PostedOn] datetime2 NOT NULL,
     [UpdatedOn] datetime2 NULL,
-    [BlogId] int NOT NULL,
-    CONSTRAINT [PK_Posts] PRIMARY KEY ([Id]),
-    CONSTRAINT [FK_Posts_Blogs_BlogId] FOREIGN KEY ([BlogId]) REFERENCES [Blogs] ([Id]));
+    CONSTRAINT [PK_Posts] PRIMARY KEY ([Id]));
 
 CREATE TABLE [PostTag] (
     [PostsId] int NOT NULL,
     [TagsId] int NOT NULL,
     CONSTRAINT [PK_PostTag] PRIMARY KEY ([PostsId], [TagsId]),
-    CONSTRAINT [FK_PostTag_Posts_TagsId] FOREIGN KEY ([TagsId]) REFERENCES [Posts] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_PostTag_Tags_PostsId] FOREIGN KEY ([PostsId]) REFERENCES [Tags] ([Id]) ON DELETE CASCADE);
+    CONSTRAINT [FK_PostTag_Posts_TagsId] FOREIGN KEY ([TagsId]) REFERENCES [Tags] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_PostTag_Tags_PostsId] FOREIGN KEY ([PostsId]) REFERENCES [Posts] ([Id]) ON DELETE CASCADE);
 ```
 
 These tables can be scaffolded from the command line. For example:
@@ -1923,7 +1920,7 @@ public class Feet
 
 GitHub Issue: [#23859](https://github.com/dotnet/efcore/issues/23859). This feature was contributed by [@wmeints](https://github.com/wmeints). Many thanks!
 
-Starting with EF Core 6.0, calls to <xref:System.String.Concat%2A?displayProperty=nameWithType> with multiple arguments are now translated to SQL. For example, the following query:
+Starting with EF Core 6.0, calls to <xref:System.String.Concat*?displayProperty=nameWithType> with multiple arguments are now translated to SQL. For example, the following query:
 
 <!--
         var shards = context.Shards
@@ -1943,7 +1940,7 @@ WHERE (([s].[Token1] + ([s].[Token2] + [s].[Token3])) <> [s].[TokensProcessed]) 
 
 GitHub Issue: [#24041](https://github.com/dotnet/efcore/issues/24041).
 
-The [System.Linq.Async](https://www.nuget.org/packages/System.Linq.Async/) package adds client-side async LINQ processing. Using this package with previous versions of EF Core was cumbersome due to a namespace clash for the async LINQ methods. In EF Core 6.0 we have taken advantage of C# pattern matching for <xref:System.Collections.Generic.IAsyncEnumerable%601> such that the exposed EF Core <xref:Microsoft.EntityFrameworkCore.DbSet%601> does not need to implement the interface directly.
+The [System.Linq.Async](https://www.nuget.org/packages/System.Linq.Async/) package adds client-side async LINQ processing. Using this package with previous versions of EF Core was cumbersome due to a namespace clash for the async LINQ methods. In EF Core 6.0 we have taken advantage of C# pattern matching for <xref:System.Collections.Generic.IAsyncEnumerable`1> such that the exposed EF Core <xref:Microsoft.EntityFrameworkCore.DbSet`1> does not need to implement the interface directly.
 
 Note that most applications do not need to use System.Linq.Async since EF Core queries are usually fully translated on the server.
 
@@ -1951,7 +1948,7 @@ Note that most applications do not need to use System.Linq.Async since EF Core q
 
 GitHub Issue: [#23921](https://github.com/dotnet/efcore/issues/23921).
 
-In EF Core 6.0, we have relaxed the parameter requirements for <xref:Microsoft.EntityFrameworkCore.SqlServerDbFunctionsExtensions.FreeText(Microsoft.EntityFrameworkCore.DbFunctions,System.String,System.String)> and <xref:Microsoft.EntityFrameworkCore.SqlServerDbFunctionsExtensions.Contains%2A>. This allows these functions to be used with binary columns, or with columns mapped using a value converter. For example, consider an entity type with a `Name` property defined as a value object:
+In EF Core 6.0, we have relaxed the parameter requirements for <xref:Microsoft.EntityFrameworkCore.SqlServerDbFunctionsExtensions.FreeText(Microsoft.EntityFrameworkCore.DbFunctions,System.String,System.String)> and <xref:Microsoft.EntityFrameworkCore.SqlServerDbFunctionsExtensions.Contains*>. This allows these functions to be used with binary columns, or with columns mapped using a value converter. For example, consider an entity type with a `Name` property defined as a value object:
 
 <!--
     public class Customer
@@ -2033,7 +2030,7 @@ Note that translation of <xref:System.Object.ToString> for SQL Server is already
 
 GitHub Issue: [#16141](https://github.com/dotnet/efcore/issues/16141). This feature was contributed by [@RaymondHuy](https://github.com/RaymondHuy). Many thanks!
 
-`EF.Functions.Random` maps to a database function returning a pseudo-random number between 0 and 1 exclusive. Translations have been implemented in the EF Core repo for SQL Server, SQLite, and Cosmos. For example, consider a `User` entity type with a `Popularity` property:
+`EF.Functions.Random` maps to a database function returning a pseudo-random number between 0 and 1 exclusive. Translations have been implemented in the EF Core repo for SQL Server, SQLite, and Azure Cosmos DB. For example, consider a `User` entity type with a `Popularity` property:
 
 <!--
     public class User
@@ -2057,7 +2054,7 @@ This translates to the following SQL when using a SQL Server database:
 ```sql
 SELECT [u].[Id], [u].[Popularity], [u].[Username]
 FROM [Users] AS [u]
-WHERE [u].[Popularity] = (CAST((RAND() * 5.0E0) AS int) + 1)
+WHERE [u].[Popularity] = (CAST((RAND() * 4.0E0) AS int) + 1)
 ```
 
 ### Improved SQL Server translation for IsNullOrWhitespace
@@ -2125,7 +2122,7 @@ public class CustomerDensity
 -->
 [!code-csharp[ViewType](../../../../samples/core/Miscellaneous/NewInEFCore6/ToInMemoryQuerySample.cs?name=ViewType)]
 
-And define an DbSet property for it on the DbContext, along with sets for other top-level entity types:
+And define a DbSet property for it on the DbContext, along with sets for other top-level entity types:
 
 <!--
         public DbSet<Customer> Customers { get; set; }
@@ -2693,7 +2690,7 @@ CREATE TABLE [Product] (
 
 GitHub Issue: [#23163](https://github.com/dotnet/efcore/issues/23163). This feature was contributed by [@KaloyanIT](https://github.com/KaloyanIT). Many thanks!
 
-<xref:Microsoft.EntityFrameworkCore.IEntityTypeConfiguration%601> instances allow <xref:Microsoft.EntityFrameworkCore.ModelBuilder> configuration for each entity type to be contained in its own configuration class. For example:
+<xref:Microsoft.EntityFrameworkCore.IEntityTypeConfiguration`1> instances allow <xref:Microsoft.EntityFrameworkCore.ModelBuilder> configuration for each entity type to be contained in its own configuration class. For example:
 
 <!--
 public class BookConfiguration : IEntityTypeConfiguration<Book>
@@ -2709,7 +2706,7 @@ public class BookConfiguration : IEntityTypeConfiguration<Book>
 -->
 [!code-csharp[BookConfiguration](../../../../samples/core/Miscellaneous/NewInEFCore6/EntityTypeConfigurationAttributeSample.cs?name=BookConfiguration)]
 
-Normally, this configuration class must be instantiated and called into from <xref:Microsoft.EntityFrameworkCore.DbContext.OnModelCreating%2A?displayProperty=nameWithType>. For example:
+Normally, this configuration class must be instantiated and called into from <xref:Microsoft.EntityFrameworkCore.DbContext.OnModelCreating*?displayProperty=nameWithType>. For example:
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -2731,7 +2728,7 @@ public class Book
 -->
 [!code-csharp[BookEntityType](../../../../samples/core/Miscellaneous/NewInEFCore6/EntityTypeConfigurationAttributeSample.cs?name=BookEntityType)]
 
-This attribute means that EF Core will use the specified `IEntityTypeConfiguration` implementation whenever the `Book` entity type is included in a model. The entity type is included in a model using one of the normal mechanisms. For example, by creating a <xref:Microsoft.EntityFrameworkCore.DbSet%601> property for the entity type:
+This attribute means that EF Core will use the specified `IEntityTypeConfiguration` implementation whenever the `Book` entity type is included in a model. The entity type is included in a model using one of the normal mechanisms. For example, by creating a <xref:Microsoft.EntityFrameworkCore.DbSet`1> property for the entity type:
 
 <!--
 public class BooksContext : DbContext
@@ -2742,7 +2739,7 @@ public class BooksContext : DbContext
 -->
 [!code-csharp[DbContext](../../../../samples/core/Miscellaneous/NewInEFCore6/EntityTypeConfigurationAttributeSample.cs?name=DbContext)]
 
-Or by registering it in <xref:Microsoft.EntityFrameworkCore.DbContext.OnModelCreating%2A>:
+Or by registering it in <xref:Microsoft.EntityFrameworkCore.DbContext.OnModelCreating*>:
 
 ```csharp
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -2778,7 +2775,7 @@ SQL Server [sparse columns](/sql/relational-databases/tables/use-sparse-columns)
 -->
 [!code-csharp[UserEntityType](../../../../samples/core/Miscellaneous/NewInEFCore6/SparseColumnsSample.cs?name=UserEntityType)]
 
-There may be millions of users, with only a handful of these being moderators. This means mapping the `ForumName` as sparse might make sense here. This can now be configured using `IsSparse` in <xref:Microsoft.EntityFrameworkCore.DbContext.OnModelCreating%2A>. For example:
+There may be millions of users, with only a handful of these being moderators. This means mapping the `ForumName` as sparse might make sense here. This can now be configured using `IsSparse` in <xref:Microsoft.EntityFrameworkCore.DbContext.OnModelCreating*>. For example:
 
 <!--
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -3150,6 +3147,173 @@ Instances are returned to the pool when they are disposed.
 
 And finally, EF Core contains several improvements in areas not covered above.
 
+### Use [ColumnAttribute.Order] when creating tables
+
+GitHub Issue: [#10059](https://github.com/dotnet/efcore/issues/10059).
+
+The `Order` property of `ColumnAttribute` can now be used to order columns when creating a table with migrations. For example, consider the following model:
+
+<!--
+public class EntityBase
+{
+    public int Id { get; set; }
+    public DateTime UpdatedOn { get; set; }
+    public DateTime CreatedOn { get; set; }
+}
+
+public class PersonBase : EntityBase
+{
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+}
+
+public class Employee : PersonBase
+{
+    public string Department { get; set; }
+    public decimal AnnualSalary { get; set; }
+    public Address Address { get; set; }
+}
+
+[Owned]
+public class Address
+{
+    public string House { get; set; }
+    public string Street { get; set; }
+    public string City { get; set; }
+
+    [Required]
+    public string Postcode { get; set; }
+}
+-->
+[!code-csharp[WithoutOrdering](../../../../samples/core/Miscellaneous/NewInEFCore6/ColumnOrderSample.cs?name=WithoutOrdering)]
+
+By default, EF Core orders primary key columns first, following by properties of the entity type and owned types, and finally properties from base types. For example, the following table is created on SQL Server:
+
+```sql
+CREATE TABLE [EmployeesWithoutOrdering] (
+    [Id] int NOT NULL IDENTITY,
+    [Department] nvarchar(max) NULL,
+    [AnnualSalary] decimal(18,2) NOT NULL,
+    [Address_House] nvarchar(max) NULL,
+    [Address_Street] nvarchar(max) NULL,
+    [Address_City] nvarchar(max) NULL,
+    [Address_Postcode] nvarchar(max) NULL,
+    [UpdatedOn] datetime2 NOT NULL,
+    [CreatedOn] datetime2 NOT NULL,
+    [FirstName] nvarchar(max) NULL,
+    [LastName] nvarchar(max) NULL,
+    CONSTRAINT [PK_EmployeesWithoutOrdering] PRIMARY KEY ([Id]));
+```
+
+In EF Core 6.0, `ColumnAttribute` can be used to specify a different column order. For example:
+
+<!--
+public class EntityBase
+{
+    [Column(Order = 1)]
+    public int Id { get; set; }
+
+    [Column(Order = 98)]
+    public DateTime UpdatedOn { get; set; }
+
+    [Column(Order = 99)]
+    public DateTime CreatedOn { get; set; }
+}
+
+public class PersonBase : EntityBase
+{
+    [Column(Order = 2)]
+    public string FirstName { get; set; }
+
+    [Column(Order = 3)]
+    public string LastName { get; set; }
+}
+
+public class Employee : PersonBase
+{
+    [Column(Order = 20)]
+    public string Department { get; set; }
+
+    [Column(Order = 21)]
+    public decimal AnnualSalary { get; set; }
+
+    public Address Address { get; set; }
+}
+
+[Owned]
+public class Address
+{
+    [Column("House", Order = 10)]
+    public string House { get; set; }
+
+    [Column("Street", Order = 11)]
+    public string Street { get; set; }
+
+    [Column("City", Order = 12)]
+    public string City { get; set; }
+
+    [Required]
+    [Column("Postcode", Order = 13)]
+    public string Postcode { get; set; }
+}
+-->
+[!code-csharp[WithOrdering](../../../../samples/core/Miscellaneous/NewInEFCore6/ColumnOrderSample.cs?name=WithOrdering)]
+
+On SQL Server, the table generated is now:
+
+```sql
+CREATE TABLE [EmployeesWithOrdering] (
+    [Id] int NOT NULL IDENTITY,
+    [FirstName] nvarchar(max) NULL,
+    [LastName] nvarchar(max) NULL,
+    [House] nvarchar(max) NULL,
+    [Street] nvarchar(max) NULL,
+    [City] nvarchar(max) NULL,
+    [Postcode] nvarchar(max) NULL,
+    [Department] nvarchar(max) NULL,
+    [AnnualSalary] decimal(18,2) NOT NULL,
+    [UpdatedOn] datetime2 NOT NULL,
+    [CreatedOn] datetime2 NOT NULL,
+    CONSTRAINT [PK_EmployeesWithOrdering] PRIMARY KEY ([Id]));
+```
+
+This moves the `FistName` and `LastName` columns are moved to the top, even though they are defined in a base type. Notice that the column order values can have gaps, allowing ranges to be used to always place columns at the end, even when used by multiple derived types.
+
+This example also shows how the same `ColumnAttribute` can be used to specify both the column name and order.
+
+Column ordering can also be configured using the `ModelBuilder` API in `OnModelCreating`. For example:
+
+<!--
+modelBuilder.Entity<UsingModelBuilder.Employee>(
+    entityBuilder =>
+    {
+        entityBuilder.Property(e => e.Id).HasColumnOrder(1);
+        entityBuilder.Property(e => e.FirstName).HasColumnOrder(2);
+        entityBuilder.Property(e => e.LastName).HasColumnOrder(3);
+
+        entityBuilder.OwnsOne(
+            e => e.Address,
+            ownedBuilder =>
+            {
+                ownedBuilder.Property(e => e.House).HasColumnName("House").HasColumnOrder(4);
+                ownedBuilder.Property(e => e.Street).HasColumnName("Street").HasColumnOrder(5);
+                ownedBuilder.Property(e => e.City).HasColumnName("City").HasColumnOrder(6);
+                ownedBuilder.Property(e => e.Postcode).HasColumnName("Postcode").HasColumnOrder(7).IsRequired();
+            });
+
+        entityBuilder.Property(e => e.Department).HasColumnOrder(8);
+        entityBuilder.Property(e => e.AnnualSalary).HasColumnOrder(9);
+        entityBuilder.Property(e => e.UpdatedOn).HasColumnOrder(10);
+        entityBuilder.Property(e => e.CreatedOn).HasColumnOrder(11);
+    });
+-->
+[!code-csharp[UsingModelBuilder](../../../../samples/core/Miscellaneous/NewInEFCore6/ColumnOrderSample.cs?name=UsingModelBuilder)]
+
+Ordering on the model builder with `HasColumnOrder` takes precedence over any order specified with `ColumnAttribute`. This means `HasColumnOrder` can be used to override ordering made with attributes, including resolving any conflicts when attributes on different properties specify the same order number.
+
+> [!IMPORTANT]
+> Note that, in the general case, most databases only support ordering columns when the table is created. This means that the column order attribute cannot be used to re-order columns in an existing table. One notable exception to this is SQLite, where migrations will rebuild the entire table with new column orders.
+
 ### EF Core Minimal API
 
 GitHub Issue: [#25192](https://github.com/dotnet/efcore/issues/25192).
@@ -3223,7 +3387,7 @@ Check out these resources to learn more about minimal APIs:
 
 GitHub Issue: [#23971](https://github.com/dotnet/efcore/issues/23971).
 
-We [changed the EF Core code in the 5.0 release](https://github.com/dotnet/efcore/issues/10164) to set <xref:System.Threading.Tasks.Task.ConfigureAwait%2A?displayProperty=nameWithType> to `false` in all places where we `await` async code. This is generally a better choice for EF Core usage. However, <xref:System.Data.Entity.DbContext.SaveChangesAsync%2A> is a special case because EF Core will set generated values into tracked entities after the async database operation is complete. These changes may then trigger notifications which, for example, may have to run on the U.I. thread. Therefore, we are reverting this change in EF Core 6.0 for the <xref:System.Data.Entity.DbContext.SaveChangesAsync%2A> method only.
+We [changed the EF Core code in the 5.0 release](https://github.com/dotnet/efcore/issues/10164) to set <xref:System.Threading.Tasks.Task.ConfigureAwait*?displayProperty=nameWithType> to `false` in all places where we `await` async code. This is generally a better choice for EF Core usage. However, <xref:System.Data.Entity.DbContext.SaveChangesAsync*> is a special case because EF Core will set generated values into tracked entities after the async database operation is complete. These changes may then trigger notifications which, for example, may have to run on the U.I. thread. Therefore, we are reverting this change in EF Core 6.0 for the <xref:System.Data.Entity.DbContext.SaveChangesAsync*> method only.
 
 ### In-memory database: validate required properties are not null
 

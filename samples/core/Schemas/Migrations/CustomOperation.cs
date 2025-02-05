@@ -3,9 +3,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations.Builders;
+using Microsoft.EntityFrameworkCore.Update;
 
 #region snippet_CreateUserOperation
-internal class CreateUserOperation : MigrationOperation
+public class CreateUserOperation : MigrationOperation
 {
     public string Name { get; set; }
     public string Password { get; set; }
@@ -15,7 +16,7 @@ internal class CreateUserOperation : MigrationOperation
 internal static class MigrationBuilderExtensions
 {
     #region snippet_MigrationBuilderExtension
-    private static OperationBuilder<CreateUserOperation> CreateUser(
+    public static OperationBuilder<CreateUserOperation> CreateUser(
         this MigrationBuilder migrationBuilder,
         string name,
         string password)
@@ -29,12 +30,12 @@ internal static class MigrationBuilderExtensions
 }
 
 #region snippet_MigrationsSqlGenerator
-internal class MyMigrationsSqlGenerator : SqlServerMigrationsSqlGenerator
+public class MyMigrationsSqlGenerator : SqlServerMigrationsSqlGenerator
 {
     public MyMigrationsSqlGenerator(
         MigrationsSqlGeneratorDependencies dependencies,
-        IRelationalAnnotationProvider migrationsAnnotations)
-        : base(dependencies, migrationsAnnotations)
+        ICommandBatchPreparer commandBatchPreparer)
+        : base(dependencies, commandBatchPreparer)
     {
     }
 
@@ -73,7 +74,7 @@ internal class MyMigrationsSqlGenerator : SqlServerMigrationsSqlGenerator
 
 internal class CustomOperationContext : DbContext
 {
-    private readonly string _connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Sample";
+    private readonly string _connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=Sample;ConnectRetryCount=0";
 
     #region snippet_OnConfiguring
     protected override void OnConfiguring(DbContextOptionsBuilder options)

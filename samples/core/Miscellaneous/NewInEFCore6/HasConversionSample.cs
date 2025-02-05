@@ -1,32 +1,33 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public static class HasConversionSample
 {
-    public static void Can_set_value_converter_type_using_generic_method()
+    public static async Task Can_set_value_converter_type_using_generic_method()
     {
         Console.WriteLine($">>>> Sample: {nameof(Can_set_value_converter_type_using_generic_method)}");
         Console.WriteLine();
 
-        Helpers.RecreateCleanDatabase();
-        Helpers.PopulateDatabase();
+        await Helpers.RecreateCleanDatabase();
+        await Helpers.PopulateDatabase();
 
         Console.WriteLine();
     }
 
     public static class Helpers
     {
-        public static void RecreateCleanDatabase()
+        public static async Task RecreateCleanDatabase()
         {
             using var context = new CurrencyContext(quiet: true);
 
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
+            await context.Database.EnsureDeletedAsync();
+            await context.Database.EnsureCreatedAsync();
         }
 
-        public static void PopulateDatabase()
+        public static async Task PopulateDatabase()
         {
             using var context = new CurrencyContext();
 
@@ -41,7 +42,7 @@ public static class HasConversionSample
                 },
                 new TestEntity1
                 {
-                    Currency = Currency.PoundsStirling
+                    Currency = Currency.PoundsSterling
                 },
                 new TestEntity2
                 {
@@ -53,7 +54,7 @@ public static class HasConversionSample
                 },
                 new TestEntity2
                 {
-                    Currency = Currency.PoundsStirling
+                    Currency = Currency.PoundsSterling
                 },
                 new TestEntity3
                 {
@@ -65,10 +66,10 @@ public static class HasConversionSample
                 },
                 new TestEntity3
                 {
-                    Currency = Currency.PoundsStirling
+                    Currency = Currency.PoundsSterling
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -83,7 +84,7 @@ public static class HasConversionSample
         public int Id { get; set; }
         public Currency Currency{ get; set; }
     }
-    
+
     public class TestEntity3
     {
         public int Id { get; set; }
@@ -94,7 +95,7 @@ public static class HasConversionSample
     public enum Currency
     {
         UsDollars,
-        PoundsStirling,
+        PoundsSterling,
         Euros
     }
     #endregion
@@ -104,8 +105,8 @@ public static class HasConversionSample
     {
         public CurrencyToSymbolConverter()
             : base(
-                v => v == Currency.PoundsStirling ? "£" : v == Currency.Euros ? "€" : "$",
-                v => v == "£" ? Currency.PoundsStirling : v == "€" ? Currency.Euros : Currency.UsDollars)
+                v => v == Currency.PoundsSterling ? "£" : v == Currency.Euros ? "€" : "$",
+                v => v == "£" ? Currency.PoundsSterling : v == "€" ? Currency.Euros : Currency.UsDollars)
         {
         }
     }
@@ -124,7 +125,7 @@ public static class HasConversionSample
         {
             optionsBuilder
                 .EnableSensitiveDataLogging()
-                .UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=EFCoreSample");
+                .UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=EFCoreSample;ConnectRetryCount=0");
 
             if (!_quiet)
             {

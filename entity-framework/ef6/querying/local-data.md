@@ -1,7 +1,7 @@
 ---
 title: Local Data - EF6
 description: Local Data in Entity Framework 6
-author: ajcvickers
+author: SamMonoRT
 ms.date: 10/23/2016
 uid: ef6/querying/local-data
 ---
@@ -99,7 +99,7 @@ using (var context = new BloggingContext())
         context.Entry(post1).State);  
 
     // Query some more posts from the database
-    context.Posts.Where(p => p.Tags.Contains("asp.net").Load();  
+    context.Posts.Where(p => p.Tags.Contains("asp.net")).Load();  
 
     // Loop over the posts in the context again.
     Console.WriteLine("\nIn Local after asp.net query: ");

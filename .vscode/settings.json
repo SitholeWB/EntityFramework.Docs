@@ -18,14 +18,23 @@
         "navigations",
         "overridable",
         "parameterizable",
+        "parameterless",
         "pluralizer",
         "queryable",
+        "requiredness",
         "resultset",
         "resultsets",
         "roundtrips",
         "savepoint",
         "savepoints",
         "serializable",
-        "subquery"
-    ]
+        "subquery",
+        "walkthrough"
+    ],
+    "markdownlint.config": {
+        "MD028": false,
+        "MD025": {
+            "front_matter_title": ""
+        }
+    }
 }

@@ -1,8 +1,8 @@
 ---
 title: Upgrading from previous versions to EF Core 2 - EF Core
 description: Instructions and notes for upgrading to Entity Framework Core 2.0
-author: ajcvickers
-ms.date: 08/13/2017
+author: SamMonoRT
+ms.date: 10/25/2021
 uid: core/what-is-new/ef-core-2.0/upgrade
 ---
 
@@ -91,9 +91,9 @@ Note: these changes should not impact most application code.
 
 The event IDs for messages sent to an [ILogger](/dotnet/api/microsoft.extensions.logging.ilogger) have changed in 2.0. The event IDs are now unique across EF Core code. These messages now also follow the standard pattern for structured logging used by, for example, MVC.
 
-Logger categories have also changed. There is now a well-known set of categories accessed through [DbLoggerCategory](https://github.com/dotnet/efcore/blob/rel/2.0.0/src/EFCore/DbLoggerCategory.cs).
+Logger categories have also changed. There is now a well-known set of categories accessed through <xref:Microsoft.EntityFrameworkCore.DbLoggerCategory>.
 
-[DiagnosticSource](https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/DiagnosticSourceUsersGuide.md) events now use the same event ID names as the corresponding `ILogger` messages. The event payloads are all nominal types derived from [EventData](/dotnet/api/microsoft.entityframeworkcore.diagnostics.eventdata).
+`DiagnosticSource` events now use the same event ID names as the corresponding `ILogger` messages. The event payloads are all nominal types derived from [EventData](/dotnet/api/microsoft.entityframeworkcore.diagnostics.eventdata).
 
 Event IDs, payload types, and categories are documented in the [CoreEventId](/dotnet/api/microsoft.entityframeworkcore.diagnostics.coreeventid) and the [RelationalEventId](/dotnet/api/microsoft.entityframeworkcore.diagnostics.relationaleventid) classes.
 
@@ -101,7 +101,7 @@ IDs have also moved from Microsoft.EntityFrameworkCore.Infrastructure to the new
 
 ## EF Core relational metadata API changes
 
-EF Core 2.0 will now build a different [IModel](/dotnet/api/microsoft.entityframeworkcore.metadata.imodel) for each different provider being used. This is usually transparent to the application. This has facilitated a simplification of lower-level metadata APIs such that any access to _common relational metadata concepts_ is always made through a call to `.Relational` instead of `.SqlServer`, `.Sqlite`, etc. For example, 1.1.x code like this:
+EF Core 2.0 will now build a different [IModel](/dotnet/api/microsoft.entityframeworkcore.metadata.imodel) for each different provider being used. This is usually transparent to the application. This has facilitated a simplification of lower-level metadata APIs such that any access to *common relational metadata concepts* is always made through a call to `.Relational` instead of `.SqlServer`, `.Sqlite`, etc. For example, 1.1.x code like this:
 
 ```csharp
 var tableName = context.Model.FindEntityType(typeof(User)).SqlServer().TableName;
@@ -120,11 +120,11 @@ modelBuilder.Entity<User>().ToTable(
     Database.IsSqlServer() ? "SqlServerName" : "OtherName");
 ```
 
-Note that this change only applies to APIs/metadata that is defined for _all_ relational providers. The API and metadata remains the same when it is specific to only a single provider. For example, clustered indexes are specific to SQL Sever, so `ForSqlServerIsClustered` and  `.SqlServer().IsClustered()` must still be used.
+Note that this change only applies to APIs/metadata that is defined for *all* relational providers. The API and metadata remains the same when it is specific to only a single provider. For example, clustered indexes are specific to SQL Sever, so `ForSqlServerIsClustered` and  `.SqlServer().IsClustered()` must still be used.
 
 ## Don’t take control of the EF service provider
 
-EF Core uses an internal `IServiceProvider` (a dependency injection container) for its internal implementation. Applications should allow EF Core to create and manage this provider except in special cases. Strongly consider removing any calls to `UseInternalServiceProvider`. If an application does need to call `UseInternalServiceProvider`, then please consider [filing an issue](https://github.com/dotnet/efcore/Issues) so we can investigate other ways to handle your scenario.
+EF Core uses an internal `IServiceProvider` (a dependency injection container) for its internal implementation. Applications should allow EF Core to create and manage this provider except in special cases. Strongly consider removing any calls to `UseInternalServiceProvider`. If an application does need to call `UseInternalServiceProvider`, then please consider [filing an issue](https://github.com/dotnet/efcore/issues) so we can investigate other ways to handle your scenario.
 
 Calling `AddEntityFramework`, `AddEntityFrameworkSqlServer`, etc. is not required by application code unless `UseInternalServiceProvider` is also called. Remove any existing calls to `AddEntityFramework` or `AddEntityFrameworkSqlServer`, etc. `AddDbContext` should still be used in the same way as before.
 
@@ -137,6 +137,33 @@ optionsBuilder.UseInMemoryDatabase("MyDatabase");
 ```
 
 This creates/uses a database with the name “MyDatabase”. If `UseInMemoryDatabase` is called again with the same name, then the same in-memory database will be used, allowing it to be shared by multiple context instances.
+
+## In-memory provider 'Include' operation no longer returns results if the included navigation is required but its value is null
+
+When trying to include a required navigation and the included navigation is null, the query no longer returns result for the entity on which the Include operation is applied. To avoid this problem, either provide a value for the required navigation or change the navigation to be optional.
+
+```csharp
+public class Person
+{
+    public int Id { get; set; }
+    public Language NativeLanguage { get; set;} // required navigation
+    public Person Sibling { get; set; } // optional navigation
+}
+...
+var person = new Person();
+context.People.Add(person);
+await context.SaveChangesAsync();
+...
+
+// returns one result
+await context.People.ToListAsync();
+
+// returns no results because 'NativeLanguage' navigation is required but has not been provided
+await context.People.Include(p => p.NativeLanguage).ToListAsync(); 
+
+// returns one result because 'Sibling' navigation is optional so it doesn't have to be provided
+await context.People.Include(p => p.Sibling).ToListAsync();
+```
 
 ## Read-only API changes
 

@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public static class PreConventionModelConfigurationSample
 {
-    public static void Configure_property_types_and_value_converter_in_one_place()
+    public static async Task Configure_property_types_and_value_converter_in_one_place()
     {
         Console.WriteLine($">>>> Sample: {nameof(Configure_property_types_and_value_converter_in_one_place)}");
         Console.WriteLine();
 
-        Helpers.RecreateCleanDatabase();
-        Helpers.PopulateDatabase();
+        await Helpers.RecreateCleanDatabase();
+        await Helpers.PopulateDatabase();
 
         using var context = new CustomersContext();
 
@@ -23,15 +24,15 @@ public static class PreConventionModelConfigurationSample
 
     public static class Helpers
     {
-        public static void RecreateCleanDatabase()
+        public static async Task RecreateCleanDatabase()
         {
             using var context = new CustomersContext(quiet: true);
 
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
+            await context.Database.EnsureDeletedAsync();
+            await context.Database.EnsureCreatedAsync();
         }
 
-        public static void PopulateDatabase()
+        public static async Task PopulateDatabase()
         {
             using var context = new CustomersContext(quiet: true);
 
@@ -40,14 +41,14 @@ public static class PreConventionModelConfigurationSample
                 {
                     Name = "Arthur",
                     IsActive = true,
-                    AccountValue = new Money(1090.0m, Currency.PoundsStirling),
+                    AccountValue = new Money(1090.0m, Currency.PoundsSterling),
                     Orders =
                     {
                         new()
                         {
                             OrderDate = new DateTime(2021, 7, 31),
-                            Price = new Money(29.0m, Currency.PoundsStirling),
-                            Discount = new Money(5.0m, Currency.PoundsStirling)
+                            Price = new Money(29.0m, Currency.PoundsSterling),
+                            Discount = new Money(5.0m, Currency.PoundsSterling)
                         }
                     }
                 },
@@ -69,7 +70,7 @@ public static class PreConventionModelConfigurationSample
                     Name = "Andrew",
                 });
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 
@@ -119,7 +120,7 @@ public static class PreConventionModelConfigurationSample
     public enum Currency
     {
         UsDollars,
-        PoundsStirling
+        PoundsSterling
     }
     #endregion
 
@@ -144,7 +145,7 @@ public static class PreConventionModelConfigurationSample
         {
             optionsBuilder
                 .EnableSensitiveDataLogging()
-                .UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=EFCoreSample");
+                .UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=EFCoreSample;ConnectRetryCount=0");
 
             //if (!_quiet)
             {

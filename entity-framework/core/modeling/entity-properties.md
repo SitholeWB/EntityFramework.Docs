@@ -11,17 +11,17 @@ Each entity type in your model has a set of properties, which EF Core will read 
 
 ## Included and excluded properties
 
-By convention, all public properties with a getter and a setter will be included in the model.
+By [convention](xref:core/modeling/index#built-in-conventions), all public properties with a getter and a setter will be included in the model.
 
 Specific properties can be excluded as follows:
 
 ### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/IgnoreProperty.cs?name=IgnoreProperty&highlight=6)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/IgnoreProperty.cs?name=IgnoreProperty&highlight=6)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/IgnoreProperty.cs?name=IgnoreProperty&highlight=3,4)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/IgnoreProperty.cs?name=IgnoreProperty&highlight=3,4)]
 
 ***
 
@@ -33,11 +33,11 @@ If you prefer to configure your columns with different names, you can do so as f
 
 ### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/ColumnName.cs?Name=ColumnName&highlight=3)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/ColumnName.cs?Name=ColumnName&highlight=3)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ColumnName.cs?Name=ColumnName&highlight=3-5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/ColumnName.cs?Name=ColumnName&highlight=3-5)]
 
 ***
 
@@ -45,17 +45,17 @@ If you prefer to configure your columns with different names, you can do so as f
 
 When using a relational database, the database provider selects a data type based on the .NET type of the property. It also takes into account other metadata, such as the configured [maximum length](#maximum-length), whether the property is part of a primary key, etc.
 
-For example, SQL Server maps `DateTime` properties to `datetime2(7)` columns, and `string` properties to `nvarchar(max)` columns (or to `nvarchar(450)` for properties that are used as a key).
+For example, the SQL Server provider maps `DateTime` properties to `datetime2(7)` columns, and `string` properties to `nvarchar(max)` columns (or to `nvarchar(450)` for properties that are used as a key).
 
 You can also configure your columns to specify an exact data type for a column. For example, the following code configures `Url` as a non-unicode string with maximum length of `200` and `Rating` as decimal with precision of `5` and scale of `2`:
 
 ### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/ColumnDataType.cs?name=ColumnDataType&highlight=5,8)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/ColumnDataType.cs?name=ColumnDataType&highlight=5,8)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ColumnDataType.cs?name=ColumnDataType&highlight=6-7)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/ColumnDataType.cs?name=ColumnDataType&highlight=6-7)]
 
 ***
 
@@ -70,11 +70,11 @@ In the following example, configuring a maximum length of 500 will cause a colum
 
 #### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/MaxLength.cs?name=MaxLength&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/MaxLength.cs?name=MaxLength&highlight=5)]
 
 #### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/MaxLength.cs?name=MaxLength&highlight=3-5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/MaxLength.cs?name=MaxLength&highlight=3-5)]
 
 ***
 
@@ -89,19 +89,13 @@ In the following example, configuring the `Score` property to have precision 14 
 
 #### [Data Annotations](#tab/data-annotations)
 
-> [!NOTE]
-> The Data Annotation for configuring precision and scale was introduced in EF Core 6.0.
-
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/PrecisionAndScale.cs?name=PrecisionAndScale&highlight=4,6)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/PrecisionAndScale.cs?name=PrecisionAndScale&highlight=4,6)]
 
 Scale is never defined without first defining precision, so the Data Annotation for defining the scale is `[Precision(precision, scale)]`.
 
 #### [Fluent API](#tab/fluent-api)
 
-> [!NOTE]
-> The Fluent API for configuring precision and scale was introduced in EF Core 5.0.
-
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/PrecisionAndScale.cs?name=PrecisionAndScale&highlight=5,9)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/PrecisionAndScale.cs?name=PrecisionAndScale&highlight=5,9)]
 
 Scale is never defined without first defining precision, so the Fluent API for defining the scale is `HasPrecision(precision, scale)`.
 
@@ -115,14 +109,11 @@ Text properties are configured as Unicode by default. You can configure a column
 
 #### [Data Annotations](#tab/data-annotations)
 
-> [!NOTE]
-> The Data Annotation for configuring Unicode was introduced in EF Core 6.0.
-
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/Unicode.cs?name=Unicode&highlight=6-7)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/Unicode.cs?name=Unicode&highlight=6-7)]
 
 #### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/Unicode.cs?name=Unicode&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/Unicode.cs?name=Unicode&highlight=5)]
 
 ***
 
@@ -134,12 +125,12 @@ A property is considered optional if it is valid for it to contain `null`. If `n
 
 By convention, a property whose .NET type can contain null will be configured as optional, whereas properties whose .NET type cannot contain null will be configured as required. For example, all properties with .NET value types (`int`, `decimal`, `bool`, etc.) are configured as required, and all properties with nullable .NET value types (`int?`, `decimal?`, `bool?`, etc.) are configured as optional.
 
-C# 8 introduced a new feature called [nullable reference types (NRT)](/dotnet/csharp/tutorials/nullable-reference-types), which allows reference types to be annotated, indicating whether it is valid for them to contain null or not. This feature is disabled by default, and affects EF Core's behavior in the following way:
+C# 8 introduced a new feature called [nullable reference types (NRT)](/dotnet/csharp/tutorials/nullable-reference-types), which allows reference types to be annotated, indicating whether it is valid for them to contain null or not. This feature is enabled by default in new project templates, but remains disabled in existing projects unless explicitly opted into. Nullable reference types affect EF Core's behavior in the following way:
 
-* If nullable reference types are disabled (the default), all properties with .NET reference types are configured as optional by convention (for example, `string`).
+* If nullable reference types are disabled, all properties with .NET reference types are configured as optional by convention (for example, `string`).
 * If nullable reference types are enabled, properties will be configured based on the C# nullability of their .NET type: `string?` will be configured as optional, but `string` will be configured as required.
 
-The following example shows an entity type with required and optional properties, with the nullable reference feature disabled (the default) and enabled:
+The following example shows an entity type with required and optional properties, with the nullable reference feature disabled and enabled:
 
 #### [Without NRT (default)](#tab/without-nrt)
 
@@ -164,18 +155,15 @@ A property that would be optional by convention can be configured to be required
 
 #### [Data Annotations](#tab/data-annotations)
 
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/Required.cs?name=Required&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/Required.cs?name=Required&highlight=5)]
 
 #### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/Required.cs?name=Required&highlight=3-5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/Required.cs?name=Required&highlight=3-5)]
 
 ***
 
 ## Column collations
-
-> [!NOTE]
-> This feature was introduced in EF Core 5.0.
 
 A collation can be defined on text columns, determining how they are compared and ordered. For example, the following code snippet configures a SQL Server column to be case-insensitive:
 
@@ -191,13 +179,28 @@ You can set an arbitrary text comment that gets set on the database column, allo
 
 ### [Data Annotations](#tab/data-annotations)
 
-> [!NOTE]
-> Setting comments via data annotations was introduced in EF Core 5.0.
-
-[!code-csharp[Main](../../../samples/core/Modeling/DataAnnotations/ColumnComment.cs?name=ColumnComment&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/DataAnnotations/ColumnComment.cs?name=ColumnComment&highlight=5)]
 
 ### [Fluent API](#tab/fluent-api)
 
-[!code-csharp[Main](../../../samples/core/Modeling/FluentAPI/ColumnComment.cs?name=ColumnComment&highlight=5)]
+[!code-csharp[Main](../../../samples/core/Modeling/EntityProperties/FluentAPI/ColumnComment.cs?name=ColumnComment&highlight=5)]
 
 ***
+
+## Column order
+
+By default when creating a table with [Migrations](xref:core/managing-schemas/migrations/index), EF Core orders primary key columns first, followed by properties of the entity type and owned types, and finally properties from base types. You can, however, specify a different column order:
+
+### [Data Annotations](#tab/data-annotations)
+
+[!code-csharp[](../../../samples/core/Modeling/EntityProperties/DataAnnotations/ColumnOrder.cs#snippet_ColumnAttribute)]
+
+The Fluent API can be used to override ordering made with attributes, including resolving any conflicts when attributes on different properties specify the same order number.
+
+### [Fluent API](#tab/fluent-api)
+
+[!code-csharp[](../../../samples/core/Modeling/EntityProperties/FluentAPI/ColumnOrder.cs#snippet_HasColumnOrder)]
+
+***
+
+Note that, in the general case, most databases only support ordering columns when the table is created. This means that the column order attribute cannot be used to re-order columns in an existing table.
